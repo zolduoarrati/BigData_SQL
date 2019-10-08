@@ -1,0 +1,347 @@
+select * from commit_comments where id is not null and commit_id is not null and user_id is not null and body is not null and line is not null and position is not null and comment_id is not null 
+and created_at is not null 
+
+users 932,082 *
+issues 72,431,922
+issue_comments 86,361,221 *
+commits 172,226,915
+commit_comments 5,436,675 *
+projects 14,555,804
+project_members 11,981,952
+project_languages 95,728,752
+
+notes:
+Notes: 2 developers might have the same number of commits and comments at the same place in the chart so we can’t let them stay at the same position for that we have to increase the dot size
+
+
+select cs.country_code, sum(cs.userTotal_comments) Total_comments, sum(cm.userTotal_commits) Total_commits
+from user_comments cs
+join user_commits cm on cs.user_id = cm.user_id
+group by cs.country_code
+
+--select u.id user_id, u.country_code, count(c.id) userTotal_commits
+select u.country_code, count(u.country_code) countryTotal_commits
+from users as u 
+join commits as c on u.id = c.committer_id 
+--group by u.id, country_code
+group by country_code
+order by countryTotal_commits desc
+--order by countryTotal_commits desc
+
+
+select  u.country_code,p.id repo_id,c.author_id, count(c.id)
+from users u join projects p on u.id = p.owner_id
+join commits c on p.owner_id = c.author_id
+where c.author_id ='41928'
+--group by u.country_code,p.id,c.author_id
+group by u.country_code,p.id,c.author_id
+order by repo_id
+
+SELECT * 
+  FROM [ghtorrent].[dbo].[commits]
+  where project_id LIKE '%[^0-9]%'
+
+select  rb.country_code, rb.id repo_id, c.author_id user_id, count(c.author_id) commits
+from repo_country rb
+join commits c on rb.id = c.project_id
+group by rb.country_code, rb.id, c. author_id
+
+--select count_big(c.committer_id)
+--from users u
+--join commits c on u.id = c.committer_id
+select u.country_code, p.id repo_id, c.author_id, count(c.author_id)
+from users u
+join projects p on u.id = p.owner_id
+join commits c on p.id = c.project_id
+group by u.country_code, p.id, c.author_id
+
+select (urc.user_id),(urc.country_code),(urc.repo_id),(p.id),(urc.commit_id)
+from user_repos_commits urc
+join projects p on urc.repo_id = p.id
+order by urc.user_id
+
+select uic.user_id, i.repo_id, uic.country_code, uic.issue_id, uic.comment_id into user_repos_issues_comments
+from user_issues_comments uic
+join issues i on uic.issue_id = i.id
+order by uic.user_id
+
+select urc.user_id, urc.country_code,urc.repo_id, count_big(urc.user_id) commits into user_repos_total_commits
+from user_repos_commits urc
+group by urc.user_id, urc.country_code,urc.repo_id
+order by urc.user_id
+
+select user_id, country_code, sum(comments) comments into user_comments
+from user_repos_issues_total_comments
+group by user_id, country_code
+order by user_id
+
+SELECT user_id, country_code,sum(commits) commits into user_commits
+  FROM [ghtorrent].[dbo].[user_repos_total_commits]
+group by user_id, country_code
+order by user_id
+
+select ucmit.user_id userCommit_id, ucmit.country_code commitCountry_code, ucmit.commits, ucment.user_id userComment_id, ucment.country_code commentCountry_code, ucment.comments into user_commits_comments 
+from user_commits ucmit
+full join user_comments ucment on ucmit.user_id = ucment.user_id
+order by ucmit.user_id
+
+select distinct urtc.user_id user_id, urtc.country_code country_code, urtc.repo_id commitRepo_id, urtc.commits commits, uritc.comments comments into user_repos_commit_comments
+from user_repos_total_commits urtc
+inner join user_repos_issues_total_comments uritc
+on urtc.user_id = uritc.user_id
+where urtc.repo_id = uritc.repo_id
+group by urtc.user_id, urtc.country_code, urtc.repo_id, urtc.commits, uritc.user_id, uritc.repo_id, uritc.country_code, uritc.comments
+order by urtc.user_id
+
+select u.id, u.country_code, count(u.id) created_issues into user_createdIssues
+from users u
+join issues i on u.id = i.reporter_id
+group by u.id, u.country_code
+order by u.id
+
+SELECT country_code, sum(created_issues) created_issues into country_createdIssues
+  FROM [ghtorrent].[dbo].[user_createdIssues]
+  group by country_code
+  order by created_issues
+
+select u.id user_id,u.country_code,i.repo_id,count(i.repo_id) issues into user_repos_createdIssues
+from users u
+join issues i on u.id = i.reporter_id
+group by u.id,u.country_code,i.repo_id
+order by user_id
+
+SELECT country_code, count(country_code) user_perCountry into country_users
+  FROM [ghtorrent].[dbo].[user_commits]
+  group by country_code
+  order by country_code
+
+select uc.user_id, uc.country_code, uc.commits, ui.comments, uci.created_issues into user_commitsComments_issues
+from user_commits uc
+join user_comments ui on uc.user_id = ui.user_id
+join user_createdIssues uci on ui.user_id = uci.user_id
+order by user_id
+
+select pl.project_id repo_id, pl.language, rc.country_code, pl.bytes size into repo_languages
+from repo_country rc
+join project_languages pl on rc.id = pl.project_id
+order by pl.project_id
+
+select language, country_code, count(language) total into country_totalLanguages
+from repo_languages
+group by language, country_code
+order by country_code
+
+/****** Script for SelectTopNRows command from SSMS  ******/
+SELECT country_code, count(user_id) Total_number_of_users_who_commented
+  FROM [ghtorrent].[dbo].[user_comments]
+  group by country_code
+  order by Total_number_of_users_who_commented desc
+
+/****** Script for SelectTopNRows command from SSMS  ******/
+SELECT country_code, count(user_id) Total_number_of_users_who_created_issues
+  FROM [ghtorrent].[dbo].[user_createdIssues]
+  group by country_code
+  order by Total_number_of_users_who_created_issues desc
+
+
+SELECT distinct repo_id --count(distinct repo_id) --(count(repo_id)) as Total_number_of_projects_per_country
+	  ,[country_code]
+  FROM [ghtorrent].[dbo].[repo_languages]
+  where country_code='us'
+--group by country_code
+--order by repo_id
+order by repo_id desc
+
+/****** Script for SelectTopNRows command from SSMS  ******/
+select * 
+	into user_commits_normalised
+from(
+	SELECT user_id, country_code, commits,
+		  (cast(commits as float)/cast(492211 as float)) as normalised_commits
+	  FROM [ghtorrent].[dbo].[user_commits]
+	  where country_code='us'
+	  union
+	  SELECT user_id, country_code, commits,
+		  (cast(commits as float)/cast(127301 as float)) as normalised_commits
+	  FROM [ghtorrent].[dbo].[user_commits]
+	  where country_code='cn'
+	  union
+		SELECT user_id, country_code, commits,
+		  (cast(commits as float)/cast(48856 as float)) as normalised_commits
+	  FROM [ghtorrent].[dbo].[user_commits]
+	  where country_code='ru'
+  ) a
+
+select uncmit.user_id committer_id, uncmit.country_code committer_countryCode, ucmit.commits, ucmit.normalised_commits, ucment.user_id commentter_id, ucment.country_code commentter_countryCode, ucment.comments, ucment.normalised_comments, (NULLIF(cast(ucmit.normalised_commits as float)/cast(ucment.normalised_comments as float)
+from user_commits_normalised uncmit
+full join user_comments_normalised uncment
+on uncmit.user_id = uncment.user_id
+order by uncmit.user_id
+
+select ucmit.user_id committer_id
+, ucmit.country_code committer_countryCode
+, ucmit.commits
+, ucmit.normalised_commits
+, ucment.user_id commentter_id
+, ucment.country_code commentter_countryCode
+, ucment.comments
+, ucment.normalised_comments
+, case when ucmit.normalised_commits is null and ucment.normalised_comments is null then cast(0 as float)
+when ucmit.normalised_commits is null and ucment.normalised_comments is not null then cast(-1 as float)
+when ucmit.normalised_commits is not null and ucment.normalised_comments is null then cast(0 as float)
+when ucmit.normalised_commits is not null and ucment.normalised_comments is not null
+then (ucmit.normalised_commits/ucment.normalised_comments)
+END AS 'normalised_commits/normalised_comments' into user_normalised_commitsOverComments
+from user_commits_normalised ucmit
+full join user_comments_normalised ucment
+on ucmit.user_id = ucment.user_id
+order by ucmit.user_id
+
+select * 
+	into user_createdIssues_normalised
+from(
+	SELECT user_id, country_code, created_issues,
+		  (cast(created_issues as float)/cast(254009 as float)) as normalised_createdIssues
+	  FROM [ghtorrent].[dbo].[user_createdIssues]
+	  where country_code='us'
+	  union
+	  SELECT user_id, country_code, created_issues,
+		  (cast(created_issues as float)/cast(63367 as float)) as normalised_createdIssues
+	  FROM [ghtorrent].[dbo].[user_createdIssues]
+	  where country_code='cn'
+	  union
+		SELECT user_id, country_code, created_issues,
+		  (cast(created_issues as float)/cast(24999 as float)) as normalised_createdIssues
+	  FROM [ghtorrent].[dbo].[user_createdIssues]
+	  where country_code='ru'
+  ) a
+
+/****** Script for SelectTopNRows command from SSMS  ******/
+select sum(distinc_users),country_code
+from(
+SELECT count(distinct (repo_id)) as distinc_users
+      --,[language]
+      ,[country_code]
+  FROM [ghtorrent].[dbo].[repo_languages]
+  --where repo_id='5'
+  group by repo_id,language,country_code
+  --order by repo_id
+  ) a
+group by country_code
+
+
+/****** Script for SelectTopNRows command from SSMS  ******/
+select language, country_code, count(language) total
+from(
+SELECT
+	 distinct(repo_id)
+	,[country_code]
+	,[language]
+  FROM [ghtorrent].[dbo].[repo_languages]
+  where repo_id='5' 
+  union
+  SELECT
+	 distinct(repo_id)
+	,[country_code]
+	,[language]
+  FROM [ghtorrent].[dbo].[repo_languages]
+  where repo_id='9068'
+  --group by country_code
+  --order by repo_id desc
+) a
+group by language, country_code
+
+
+select language, country_code, count(language) total
+into country_total_languages_updated
+from(
+SELECT
+	 distinct(repo_id)
+	,[country_code]
+	,[language]
+  FROM [ghtorrent].[dbo].[repo_languages]
+) a
+group by language, country_code
+
+SELECT distinct (repo_id) -- as distinc_users
+      ,[language]
+      ,[country_code]
+	  into repo_distinct_languages_country
+  FROM [ghtorrent].[dbo].[repo_languages]
+  --where repo_id='5'
+  --group by repo_id,language,country_code
+  order by repo_id
+--  ) a
+
+select * 
+	into country_total_languages_updatedNormalised
+from(
+	SELECT language, country_code, total,
+		  (cast(total as float)/cast(3055053 as float)) as normalised_totalLanguages
+	  FROM [ghtorrent].[dbo].[country_total_languages_updated]
+	  where country_code='us'
+	  union
+	  SELECT language, country_code, total,
+		  (cast(total as float)/cast(892080 as float)) as normalised_totalLanguages
+	  FROM [ghtorrent].[dbo].[country_total_languages_updated]
+	  where country_code='cn'
+	  union
+		SELECT language, country_code, total,
+		  (cast(total as float)/cast(234970 as float)) as normalised_totalLanguages
+	  FROM [ghtorrent].[dbo].[country_total_languages_updated]
+	  where country_code='ru'
+  ) a
+
+SELECT urcm.user_id, urcm.country_code,cm.body into users_RestCountry_commentsBody
+  FROM users_RestCountry_comments urcm
+  join commit_comments cm on urcm.user_id=cm.user_id
+  order by urcm.user_id
+
+/****** Script for SelectTopNRows command from SSMS  ******/
+SELECT user_id
+      ,ISNULL(country_code,'ru') as country_code
+      ,body into users_RestCountry_commentsBRU
+  FROM users_RestCountry_commentsBodyRU
+
+select u.id as user_id, u.country_code, cm.body into users_RestCountry_commentsORG
+from users u
+join commit_comments cm on u.id=cm.user_id
+
+
+
+select count(user_id), country_code--user_id, country_code, body
+	---into country_total_languages_updatedNormalised
+from(
+	SELECT user_id, country_code, CAST(body AS NVARCHAR(MAX)) as body
+	  FROM [ghtorrent].[dbo].[users_RestCountry_commentsORG]
+	  union
+	  SELECT user_id, country_code, CAST(body AS NVARCHAR(MAX))as body
+	  FROM [ghtorrent].[dbo].[users_RestCountry_commentsBCN]
+	  union
+	  SELECT user_id, country_code, CAST(body AS NVARCHAR(MAX)) as body
+	  FROM [ghtorrent].[dbo].[users_RestCountry_commentsBRU]
+  )a
+group by country_code 
+  --order by user_id
+
+
+
+
+
+
+select user_id, country_code, body
+	into users_country_comments
+from(
+	SELECT user_id, country_code, CAST(body AS NVARCHAR(MAX)) as body
+	  FROM [ghtorrent].[dbo].[users_RestCountry_commentsORG]
+	  union
+	  SELECT user_id, country_code, CAST(body AS NVARCHAR(MAX))as body
+	  FROM [ghtorrent].[dbo].[users_RestCountry_commentsBCN]
+	  union
+	  SELECT user_id, country_code, CAST(body AS NVARCHAR(MAX)) as body
+	  FROM [ghtorrent].[dbo].[users_RestCountry_commentsBRU]
+  )a
+--group by country_code 
+order by user_id
+
+
