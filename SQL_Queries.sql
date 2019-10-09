@@ -9,17 +9,17 @@
 --order by pr.id
 --***************************************************************
 --creating repo_total_commits_users
-select rc.id
-, rc.country_code
+select rc.country_code
 , rc.name
 , count_big(c.id) as total_commits
-, count_big(distinct cm.comment_id) as total_users
+--, count_big(distinct cm.comment_id) as total_users
 --, count_big(i.id) as total_issues
 --, count_big(im.issue_id) as total_comments
 from repo_country rc
 join commits c on rc.id = c.project_id
-join commit_comments cm on c.committer_id = cm.id
+where total_commits = '25'
+--oin commit_comments cm on c.committer_id = cm.id
 --join issues i on rc.id = i.repo_id
 --join issue_comments im on i.id = im.issue_id
-group by rc.id, rc.country_code, rc.name
-order by total_commits desc
+group by rc.country_code, rc.name
+order by name
